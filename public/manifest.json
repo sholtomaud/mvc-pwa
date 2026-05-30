@@ -3,8 +3,8 @@
   "name": "Todo App",
   "short_name": "Todo App",
   "description": "A beautiful, premium, offline-first target and todo tracker designed for high productivity.",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "display_override": [
     "window-controls-overlay",
