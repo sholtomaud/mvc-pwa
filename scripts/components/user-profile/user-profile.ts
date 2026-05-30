@@ -112,7 +112,7 @@ class UserProfile extends HTMLElement {
 
       this.debounceTimer = window.setTimeout(async () => {
         try {
-          const res = await fetch(`/api/check-username?username=${encodeURIComponent(username)}`);
+          const res = await fetch(`api/check-username?username=${encodeURIComponent(username)}`);
           if (res.ok) {
             const data = await res.json();
             if (usernameFeedback) {
@@ -194,7 +194,7 @@ class UserProfile extends HTMLElement {
         };
 
         // Simulate save payload API mock
-        const response = await fetch('/api/save-profile', {
+        const response = await fetch('api/save-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
