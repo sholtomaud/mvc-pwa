@@ -1,4 +1,5 @@
 import sheet from './app-navigation.css' with { type: 'css' };
+import htmlText from './app-navigation.html?raw';
 import type { Profile } from '../user-profile/user-profile';
 
 class AppNavigation extends HTMLElement {
@@ -13,16 +14,14 @@ class AppNavigation extends HTMLElement {
     this.shadow.adoptedStyleSheets = [sheet];
   }
 
-  async connectedCallback(): Promise<void> {
-    await this.render();
+  connectedCallback(): void {
+    this.render();
     this.setupDrawer();
     this.setupProfileSync();
     this.setupRouteSync();
   }
 
-  private async render(): Promise<void> {
-    const response = await fetch(import.meta.resolve('./app-navigation.html'));
-    const htmlText = await response.text();
+  private render(): void {
     this.shadow.innerHTML = htmlText;
   }
 

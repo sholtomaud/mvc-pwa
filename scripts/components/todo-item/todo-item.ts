@@ -1,4 +1,5 @@
 import sheet from './todo-item.css' with { type: 'css' };
+import htmlText from './todo-item.html?raw';
 
 class TodoItem extends HTMLElement {
   private shadow: ShadowRoot;
@@ -65,8 +66,8 @@ class TodoItem extends HTMLElement {
     this.render();
   }
 
-  async connectedCallback(): Promise<void> {
-    await this.render();
+  connectedCallback(): void {
+    this.render();
     this.setupListeners();
   }
 
@@ -126,13 +127,11 @@ class TodoItem extends HTMLElement {
     });
   }
 
-  private async render(): Promise<void> {
+  private render(): void {
     if (this._id !== null) {
       this.style.setProperty('--item-transition-name', `todo-item-${this._id}`);
     }
 
-    const response = await fetch(import.meta.resolve('./todo-item.html'));
-    const htmlText = await response.text();
     this.shadow.innerHTML = htmlText;
 
     // Apply values to HTML elements

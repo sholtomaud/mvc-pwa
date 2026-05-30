@@ -1,49 +1,37 @@
 const CACHE_NAME = 'todo-app-v1.2.0';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/styles/main.css',
-  '/manifest.json',
-  '/scripts/components/todo-item.html',
-  '/scripts/components/todo-item.css',
-  '/scripts/components/todo-item.css?inline',
-  '/scripts/components/todo-item.ts',
-  '/scripts/components/todo-input.html',
-  '/scripts/components/todo-input.css',
-  '/scripts/components/todo-input.css?inline',
-  '/scripts/components/todo-input.ts',
-  '/scripts/components/todo-list.html',
-  '/scripts/components/todo-list.css',
-  '/scripts/components/todo-list.css?inline',
-  '/scripts/components/todo-list.ts',
-  '/scripts/components/todo-app.html',
-  '/scripts/components/todo-app.css',
-  '/scripts/components/todo-app.css?inline',
-  '/scripts/components/todo-app.ts',
-  '/scripts/components/app-navigation.html',
-  '/scripts/components/app-navigation.css',
-  '/scripts/components/app-navigation.css?inline',
-  '/scripts/components/app-navigation.ts',
-  '/scripts/components/user-profile.html',
-  '/scripts/components/user-profile.css',
-  '/scripts/components/user-profile.css?inline',
-  '/scripts/components/user-profile.ts',
-  '/images/app-icon48.png',
-  '/images/app-icon72.png',
-  '/images/app-icon96.png',
-  '/images/app-icon144.png',
-  '/images/app-icon168.png',
-  '/images/app-icon192.png',
-  '/images/app-icon512.png'
+  './',
+  'index.html',
+  'styles/main.css',
+  'manifest.json',
+  'images/app-icon48.png',
+  'images/app-icon72.png',
+  'images/app-icon96.png',
+  'images/app-icon144.png',
+  'images/app-icon168.png',
+  'images/app-icon192.png',
+  'images/app-icon512.png'
 ];
 
 // Install Event
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[Service Worker] Pre-caching offline assets');
-        return cache.addAll(ASSETS_TO_CACHE);
+      .then(async (cache) => {
+        console.log('[Service Worker] Pre-caching offline assets progressively');
+        const cachePromises = ASSETS_TO_CACHE.map(async (url) => {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(`Fetch failed for ${url} with status ${response.status}`);
+            }
+            await cache.put(url, response);
+            console.log(`[Service Worker] Pre-cached successfully: ${url}`);
+          } catch (error) {
+            console.warn(`[Service Worker] Pre-caching skipped for: ${url}. Reason:`, error.message);
+          }
+        });
+        await Promise.all(cachePromises);
       })
       .then(() => self.skipWaiting())
   );

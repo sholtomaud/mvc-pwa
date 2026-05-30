@@ -1,4 +1,5 @@
 import sheet from './user-profile.css' with { type: 'css' };
+import htmlText from './user-profile.html?raw';
 
 interface Profile {
   username: string;
@@ -29,14 +30,12 @@ class UserProfile extends HTMLElement {
     this.profile = stored ? JSON.parse(stored) : { ...DEFAULT_PROFILE };
   }
 
-  async connectedCallback(): Promise<void> {
-    await this.render();
+  connectedCallback(): void {
+    this.render();
     this.setupForm();
   }
 
-  private async render(): Promise<void> {
-    const response = await fetch(import.meta.resolve('./user-profile.html'));
-    const htmlText = await response.text();
+  private render(): void {
     this.shadow.innerHTML = htmlText;
   }
 

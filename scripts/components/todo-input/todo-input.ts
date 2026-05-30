@@ -1,4 +1,5 @@
 import sheet from './todo-input.css' with { type: 'css' };
+import htmlText from './todo-input.html?raw';
 
 class TodoInput extends HTMLElement {
   private shadow: ShadowRoot;
@@ -9,14 +10,12 @@ class TodoInput extends HTMLElement {
     this.shadow.adoptedStyleSheets = [sheet];
   }
 
-  async connectedCallback(): Promise<void> {
-    await this.render();
+  connectedCallback(): void {
+    this.render();
     this.setupListeners();
   }
 
-  private async render(): Promise<void> {
-    const response = await fetch(import.meta.resolve('./todo-input.html'));
-    const htmlText = await response.text();
+  private render(): void {
     this.shadow.innerHTML = htmlText;
   }
 

@@ -1,4 +1,5 @@
 import sheet from './todo-app.css' with { type: 'css' };
+import htmlText from './todo-app.html?raw';
 
 // Register child components by importing them
 import '../todo-item/todo-item';
@@ -26,15 +27,13 @@ class TodoApp extends HTMLElement {
     this.todos = JSON.parse(localStorage.getItem('todos') || '[]');
   }
 
-  async connectedCallback(): Promise<void> {
-    await this.render();
+  connectedCallback(): void {
+    this.render();
     this.setupListeners();
     this.updateList();
   }
 
-  private async render(): Promise<void> {
-    const response = await fetch(import.meta.resolve('./todo-app.html'));
-    const htmlText = await response.text();
+  private render(): void {
     this.shadow.innerHTML = htmlText;
   }
 

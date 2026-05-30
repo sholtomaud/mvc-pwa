@@ -1,4 +1,5 @@
 import sheet from './todo-list.css' with { type: 'css' };
+import htmlText from './todo-list.html?raw';
 
 interface Todo {
   id: number;
@@ -15,17 +16,15 @@ class TodoList extends HTMLElement {
     this.shadow.adoptedStyleSheets = [sheet];
   }
 
-  async connectedCallback(): Promise<void> {
-    await this.render();
+  connectedCallback(): void {
+    this.render();
     this.dispatchEvent(new CustomEvent('list-ready', {
       bubbles: true,
       composed: true
     }));
   }
 
-  private async render(): Promise<void> {
-    const response = await fetch(import.meta.resolve('./todo-list.html'));
-    const htmlText = await response.text();
+  private render(): void {
     this.shadow.innerHTML = htmlText;
   }
 
