@@ -1,0 +1,63 @@
+<header class="app-header">
+  <div class="header-inner">
+    <button class="menu-trigger-btn" id="drawer-open" aria-label="Open navigation menu" aria-expanded="false" aria-controls="app-drawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="12" x2="20" y2="12"></line>
+        <line x1="4" y1="6" x2="20" y2="6"></line>
+        <line x1="4" y1="18" x2="20" y2="18"></line>
+      </svg>
+    </button>
+    <div class="header-title">Todo App</div>
+
+    <nav class="desktop-nav" aria-label="Desktop Navigation">
+      <a href="#" class="desktop-link active" data-route="tasks">Task Tracker</a>
+      <a href="#" class="desktop-link" data-route="profile">User Profile</a>
+      <div class="desktop-profile-preview">
+        <div class="preview-avatar"></div>
+        <div class="preview-info">
+          <div class="preview-name">Alexander Vance</div>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- popover="manual" is REQUIRED for gesture scroll snapping -->
+<div class="Drawer" id="app-drawer" popover="manual">
+  <div class="Drawer-scroller">
+    <nav class="Drawer-sheet" tabindex="-1" aria-label="Global Navigation">
+      <div class="drawer-header">
+        <h3>Menu</h3>
+      </div>
+      <ul class="drawer-links">
+        <li>
+          <a href="#" class="drawer-link active" data-route="tasks">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <span>Task Tracker</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="drawer-link" data-route="profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>User Profile</span>
+          </a>
+        </li>
+      </ul>
+      <div class="drawer-footer">
+        <div class="profile-preview">
+          <div class="preview-avatar"></div>
+          <div class="preview-info">
+            <div class="preview-name">Alexander Vance</div>
+            <div class="preview-target">Daily Target: 5 tasks</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <title>Todo App</title>
+  
+  <!-- SEO & PWA metadata -->
+  <meta name="description" content="A beautiful, premium, offline-first target and todo tracker designed for high productivity.">
+  <meta name="theme-color" content="#0a0a0c" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Todo App">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="styles/main.css">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="images/app-icon48.png" type="image/png">
+  
+  <!-- Early Global PWA Event Capture -->
+  <script>
+    window.deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      window.deferredPrompt = e;
+      window.dispatchEvent(new CustomEvent('pwa-install-ready'));
+      console.log('[PWA Engine] Install prompt captured early.');
+    });
+  </script>
+  
+  <!-- App Icons -->
+  <link rel="apple-touch-icon" href="images/app-icon192.png">
+
+  <!-- Dev Mode SW Unregistration and Cache Clearing to break cache-locks -->
+  <script>
+    const isLocalDev = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' || 
+                       window.location.hostname.startsWith('192.168.') || 
+                       window.location.port === '5173';
+                  
+    if (isLocalDev) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (let registration of registrations) {
+            registration.unregister().then(function() {
+              console.log('[Dev Engine] Service Worker unregistered.');
+            });
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name).then(function() {
+              console.log('[Dev Engine] Cache cleared:', name);
+            });
+          }
+        });
+      }
+    }
+  </script>
+
+  <!-- Service Worker Registration in Production -->
+  <script>
+    const isLocalDevMode = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1' || 
+                           window.location.hostname.startsWith('192.168.') || 
+                           window.location.port === '5173';
+
+    if (!isLocalDevMode) {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('[Service Worker] Registered successfully:', registration.scope);
+            })
+            .catch((error) => {
+              console.error('[Service Worker] Registration failed:', error);
+            });
+        });
+      }
+    }
+  </script>
+
+  <!-- Component Scripts & ES Modules -->
+  <script type="module" src="scripts/components/todo-app/todo-app.ts"></script>
+</head>
+<body>
+
+  <!-- Top-level Web Component orchestrator -->
+  <todo-app></todo-app>
+
+</body>
+</html>

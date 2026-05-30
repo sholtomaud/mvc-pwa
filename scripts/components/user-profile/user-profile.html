@@ -1,0 +1,97 @@
+<div class="profile-card">
+  <h1>Setup Profile</h1>
+  <p class="profile-desc">Configure your personal account details and daily target settings.</p>
+
+  <!-- Step indicators -->
+  <div class="step-indicator">
+    <div class="step active" data-step-indicator="1">
+      <span class="step-num">1</span>
+      <span class="step-label">Account details</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" data-step-indicator="2">
+      <span class="step-num">2</span>
+      <span class="step-label">Daily target</span>
+    </div>
+  </div>
+
+  <form class="profile-form" novalidate>
+    <!-- Step 1: Account Info -->
+    <div class="form-step active" data-step="1">
+      <div class="form-grid">
+        <div class="input-group">
+          <label for="profile-username">Username</label>
+          <input
+            type="text"
+            id="profile-username"
+            name="username"
+            required
+            minlength="2"
+            placeholder="Enter your name"
+            autocomplete="name"
+            enterkeyhint="next"
+          >
+          <span class="username-feedback" aria-live="polite"></span>
+        </div>
+
+        <div class="input-group">
+          <label for="profile-email">Email Address</label>
+          <input
+            type="email"
+            id="profile-email"
+            name="email"
+            required
+            placeholder="name@example.com"
+            autocomplete="email"
+            inputmode="email"
+            enterkeyhint="done"
+          >
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="next-btn">Next Step</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Preferences -->
+    <div class="form-step" data-step="2">
+      <div class="form-grid">
+        <div class="input-group full-width">
+          <label for="profile-address">Home Address</label>
+          <input
+            type="text"
+            id="profile-address"
+            name="address"
+            placeholder="Street address, City, Country"
+            autocomplete="street-address"
+            enterkeyhint="next"
+          >
+        </div>
+
+        <div class="input-group">
+          <label for="profile-target">Daily Task Target</label>
+          <input
+            type="text"
+            id="profile-target"
+            name="target"
+            required
+            inputmode="numeric"
+            pattern="[0-9]+"
+            placeholder="e.g. 5"
+            enterkeyhint="done"
+            min="1"
+            max="100"
+          >
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="prev-btn">Previous</button>
+        <button type="submit" class="submit-btn">Save & Complete</button>
+        <span class="status-msg" aria-live="polite"></span>
+      </div>
+    </div>
+  </form>
+</div>
+

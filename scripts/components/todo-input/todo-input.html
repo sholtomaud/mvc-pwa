@@ -1,0 +1,54 @@
+<div class="fab-container">
+  <button
+    class="fab-btn"
+    aria-label="Add new todo item"
+    aria-haspopup="dialog"
+    commandfor="todo-dialog"
+    command="show-modal"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+  </button>
+</div>
+
+<!-- closedby="any" enables click-outside light dismiss natively (Newly Available) -->
+<dialog
+  class="todo-dialog"
+  id="todo-dialog"
+  aria-labelledby="dialog-title"
+  closedby="any"
+>
+  <!-- Mobile drag handle hint -->
+  <div class="dialog-handle" aria-hidden="true"></div>
+
+  <div class="dialog-header">
+    <h3 id="dialog-title">New Task</h3>
+    <button
+      class="close-dialog-btn"
+      aria-label="Close dialog"
+      commandfor="todo-dialog"
+      command="close"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <form class="todo-form" method="dialog">
+    <div class="input-group">
+      <input
+        type="text"
+        class="todo-text-input"
+        placeholder="What needs to be done?"
+        required
+        autocomplete="off"
+        aria-label="Task description"
+        enterkeyhint="done"
+        autofocus
+      >
+    </div>
+    <button type="submit" class="form-submit-btn">Add Task</button>
+  </form>
+</dialog>

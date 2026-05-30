@@ -1,0 +1,119 @@
+:host {
+  display: block;
+  view-transition-name: var(--item-transition-name);
+}
+
+.todo-item-card {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  will-change: transform;
+}
+
+.todo-item-card:hover {
+  border-color: var(--border-color);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.todo-checkbox {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  margin-right: 1rem;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.todo-checkbox:hover {
+  border-color: var(--primary);
+}
+
+.todo-checkbox.checked {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.todo-checkbox svg {
+  width: 14px;
+  height: 14px;
+  stroke: #ffffff;
+  stroke-width: 3;
+  fill: none;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+.todo-checkbox.checked svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.todo-text-span {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  overflow-wrap: anywhere;
+}
+
+.todo-text-span:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-tertiary);
+}
+
+.todo-item-card.completed .todo-text-span {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Deletion Button */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  background: var(--danger-glow);
+  color: var(--danger);
+}
+
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
