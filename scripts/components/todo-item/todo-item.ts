@@ -1,4 +1,4 @@
-import sheet from './todo-item.css' assert { type: 'css' };
+import sheet from './todo-item.css' with { type: 'css' };
 
 class TodoItem extends HTMLElement {
   private shadow: ShadowRoot;

@@ -1,4 +1,4 @@
-import sheet from './user-profile.css' assert { type: 'css' };
+import sheet from './user-profile.css' with { type: 'css' };
 
 interface Profile {
   username: string;

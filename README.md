@@ -14,7 +14,7 @@ We follow a strict **Triple-File Native Web Component** convention to preserve c
 ### Key Browser APIs Adopted
 * **CSS Module Scripts & `adoptedStyleSheets`**: Scoped styles are imported directly as `CSSStyleSheet` objects and adopted by shadow roots to prevent style bleed:
   ```typescript
-  import sheet from './todo-input.css' assert { type: 'css' };
+  import sheet from './todo-input.css' with { type: 'css' };
   this.shadow.adoptedStyleSheets = [sheet];
   ```
 * **Dynamic Resolvers (`import.meta.resolve`)**: Markup templates are resolved dynamically at runtime and injected into the Shadow DOM:

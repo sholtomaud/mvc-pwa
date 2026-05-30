@@ -1,4 +1,4 @@
-import sheet from './todo-input.css' assert { type: 'css' };
+import sheet from './todo-input.css' with { type: 'css' };
 
 class TodoInput extends HTMLElement {
   private shadow: ShadowRoot;

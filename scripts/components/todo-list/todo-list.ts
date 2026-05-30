@@ -1,4 +1,4 @@
-import sheet from './todo-list.css' assert { type: 'css' };
+import sheet from './todo-list.css' with { type: 'css' };
 
 interface Todo {
   id: number;

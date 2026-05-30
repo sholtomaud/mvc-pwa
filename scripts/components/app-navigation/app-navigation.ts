@@ -1,4 +1,4 @@
-import sheet from './app-navigation.css' assert { type: 'css' };
+import sheet from './app-navigation.css' with { type: 'css' };
 import type { Profile } from '../user-profile/user-profile';
 
 class AppNavigation extends HTMLElement {

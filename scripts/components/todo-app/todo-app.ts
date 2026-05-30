@@ -1,4 +1,4 @@
-import sheet from './todo-app.css' assert { type: 'css' };
+import sheet from './todo-app.css' with { type: 'css' };
 
 // Register child components by importing them
 import '../todo-item/todo-item';
