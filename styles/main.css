@@ -108,6 +108,64 @@ todo-app {
   position: relative;
 }
 
+/* Splash screen — #splash div is dismissed by JS after a minimum display time */
+@keyframes splash-pop {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes splash-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes splash-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+  50%       { box-shadow: 0 0 0 16px rgba(99, 102, 241, 0.12); }
+}
+
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: var(--bg-primary);
+  transition: opacity 0.4s ease-out;
+}
+
+#splash img {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+  animation:
+    splash-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    splash-glow 2s ease-in-out 0.4s infinite;
+}
+
+#splash span {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  animation: splash-fade-up 0.4s ease-out 0.2s both;
+}
+
+#splash.splash--out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* No-JS / pre-registration fallback: keep background consistent */
+todo-app:not(:defined) {
+  min-height: 100dvh;
+  background: var(--bg-primary);
+}
+
 #app-main-content {
   width: 100%;
   max-width: 800px;

@@ -12,6 +12,7 @@
   <meta name="theme-color" content="#0a0a0c" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Todo App">
   
@@ -94,8 +95,31 @@
 </head>
 <body>
 
+  <!-- Splash screen: dismissed by JS after min display time + app ready -->
+  <div id="splash" aria-hidden="true">
+    <img src="/images/app-icon192.png" alt="" width="96" height="96">
+    <span>Todo App</span>
+  </div>
+
   <!-- Top-level Web Component orchestrator -->
   <todo-app></todo-app>
+
+  <script>
+    (function () {
+      const MIN_MS = 1500;
+      const t0 = Date.now();
+      function dismiss() {
+        const el = document.getElementById('splash');
+        if (!el) return;
+        const remaining = Math.max(0, MIN_MS - (Date.now() - t0));
+        setTimeout(function () {
+          el.classList.add('splash--out');
+          el.addEventListener('transitionend', function () { el.remove(); }, { once: true });
+        }, remaining);
+      }
+      customElements.whenDefined('todo-app').then(dismiss);
+    })();
+  </script>
 
 </body>
 </html>
