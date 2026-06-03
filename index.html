@@ -16,9 +16,26 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Todo App">
   
-  <!-- All splash layout styles inlined — fully stable before main.css loads.
-       Keeps the SW intercept latency from causing a font-swap layout shift. -->
+  <!-- Critical layout inlined so the body and splash are fully stable from the
+       very first paint. Prevents any layout shift when main.css arrives via SW. -->
   <style>
+    /* Body layout set here so main.css applying the same values causes zero change */
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: #0a0a0c;
+      overflow-x: hidden;
+      padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+               env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    }
+    @media (prefers-color-scheme: light) {
+      body { background-color: #f8fafc; }
+    }
+
+    /* Splash promoted to its own compositor layer (will-change: transform) so
+       any late body/viewport geometry changes don't cause it to repaint/shift */
     #splash {
       position: fixed;
       inset: 0;
@@ -30,6 +47,7 @@
       gap: 1.25rem;
       background: #0a0a0c;
       transition: opacity 0.4s ease-out;
+      will-change: transform;
     }
     @media (prefers-color-scheme: light) {
       #splash { background: #f8fafc; }
