@@ -106,36 +106,14 @@ todo-app {
   position: relative;
 }
 
-/* Splash screen — #splash div is dismissed by JS after a minimum display time */
+/* Splash glow — only animation added by main.css; all layout is in the inline <style> */
 @keyframes splash-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
   50%       { box-shadow: 0 0 0 16px rgba(99, 102, 241, 0.12); }
 }
 
-/* Base layout duplicated from the inline <style> so main.css enriches it */
-#splash {
-  transition: opacity 0.4s ease-out;
-}
-
 #splash img {
-  width: 96px;
-  height: 96px;
-  border-radius: 22px;
-  /* No entrance animation — icon is visible immediately at final position */
   animation: splash-glow 2s ease-in-out 0.6s infinite;
-}
-
-#splash span {
-  font-family: var(--font-sans);
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #9ca3af;
-  letter-spacing: 0.02em;
-}
-
-#splash.splash--out {
-  opacity: 0;
-  pointer-events: none;
 }
 
 /* No-JS / pre-registration fallback: keep background consistent */
