@@ -16,6 +16,24 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Todo App">
   
+  <!-- Critical splash styles inlined so the background is immediate before main.css parses -->
+  <style>
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      background: #0a0a0c;
+    }
+    @media (prefers-color-scheme: light) {
+      #splash { background: #f8fafc; }
+    }
+  </style>
+
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="styles/main.css">
   
