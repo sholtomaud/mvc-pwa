@@ -106,16 +106,6 @@ todo-app {
   position: relative;
 }
 
-/* Splash glow — only animation added by main.css; all layout is in the inline <style> */
-@keyframes splash-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-  50%       { box-shadow: 0 0 0 16px rgba(99, 102, 241, 0.12); }
-}
-
-#splash img {
-  animation: splash-glow 2s ease-in-out 0.6s infinite;
-}
-
 /* No-JS / pre-registration fallback: keep background consistent */
 todo-app:not(:defined) {
   min-height: 100dvh;
