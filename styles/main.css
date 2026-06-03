@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-
 :root {
   /* Color Palette (Deep premium dark theme) */
   --bg-primary: #0a0a0c;
@@ -33,7 +31,7 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-glow: 0 0 20px 2px var(--primary-glow);
 
-  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -128,8 +126,7 @@ todo-app {
 }
 
 #splash span {
-  /* System font avoids font-swap layout shift on iOS */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.125rem;
   font-weight: 600;
   color: #9ca3af;
