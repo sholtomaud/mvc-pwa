@@ -25,15 +25,20 @@ class TodoInput extends HTMLElement {
     const form = this.shadow.querySelector('.todo-form') as HTMLFormElement;
     const input = this.shadow.querySelector('.todo-text-input') as HTMLInputElement;
 
-    // Sync FAB active state when opened via invoker commands
+    let cleanupKeyboard: (() => void) | null = null;
+
+    // Sync FAB active state and start keyboard tracking
     fabBtn.addEventListener('click', () => {
       fabBtn.classList.add('open');
+      cleanupKeyboard = this.trackKeyboard(dialog);
     });
 
     // Clean up active state and form inputs when closed (via Esc, backdrop click, or close button)
     dialog.addEventListener('close', () => {
       fabBtn.classList.remove('open');
       form.reset();
+      cleanupKeyboard?.();
+      cleanupKeyboard = null;
     });
 
     // Light dismiss (click backdrop to close)
@@ -61,6 +66,37 @@ class TodoInput extends HTMLElement {
         dialog.close();
       }
     });
+  }
+  private trackKeyboard(dialog: HTMLDialogElement): () => void {
+    const vv = window.visualViewport;
+    if (!vv) return () => {};
+
+    const isMobileSheet = window.matchMedia('(max-width: 480px)').matches;
+
+    const reposition = () => {
+      // Keyboard height = gap between the bottom of the visual viewport and the window bottom
+      const keyboardHeight = window.innerHeight - (vv.offsetTop + vv.height);
+      if (isMobileSheet) {
+        // Slide the bottom sheet up above the keyboard
+        dialog.style.bottom = `${Math.max(0, keyboardHeight)}px`;
+      } else {
+        // Keep the centred modal in the middle of the visible area
+        const top = Math.round(vv.offsetTop + vv.height / 2);
+        dialog.style.top = `${top}px`;
+        dialog.style.transform = 'translate(-50%, -50%) scale(1)';
+      }
+    };
+
+    vv.addEventListener('resize', reposition);
+    vv.addEventListener('scroll', reposition);
+
+    return () => {
+      vv.removeEventListener('resize', reposition);
+      vv.removeEventListener('scroll', reposition);
+      dialog.style.bottom = '';
+      dialog.style.top = '';
+      dialog.style.transform = '';
+    };
   }
 }
 
