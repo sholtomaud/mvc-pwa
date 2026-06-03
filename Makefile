@@ -3,7 +3,7 @@ CONTAINER_BIN    := container
 NODE_VERSION     := $(shell cat .node-version)
 WORKDIR          := /app
 
-.PHONY: start image install dev build-app test clean
+.PHONY: start image install dev build-app test icons clean
 
 # --------------------------------------------------
 # Container daemon
@@ -34,6 +34,9 @@ build-app: start ## Compile optimized static assets
 
 test: start ## Run Playwright E2E integration tests inside container
 	$(CONTAINER_BIN) run --rm -v $(shell pwd):$(WORKDIR) $(IMAGE_APP) npm run test
+
+icons: start ## Generate PWA icons from the splash design (dark bg + gradient T)
+	$(CONTAINER_BIN) run --rm -v $(shell pwd):$(WORKDIR) $(IMAGE_APP) node scripts/generate-icons.mjs
 
 clean: ## Clear compiled directories and node dependencies
 	rm -rf node_modules dist .vite
