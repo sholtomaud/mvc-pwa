@@ -152,13 +152,6 @@ dialog.todo-dialog[open]::backdrop {
     /* Slide up from below */
     transform: translateY(20px);
     box-shadow: 0 -8px 32px -4px rgba(0, 0, 0, 0.3);
-    /* bottom is driven by JS keyboard tracking — animate it smoothly */
-    transition:
-      opacity 0.22s ease-out,
-      transform 0.28s cubic-bezier(0.34, 1.42, 0.64, 1),
-      bottom 0.2s ease-out,
-      display 0.22s allow-discrete,
-      overlay 0.22s allow-discrete;
   }
 
   dialog.todo-dialog[open] {

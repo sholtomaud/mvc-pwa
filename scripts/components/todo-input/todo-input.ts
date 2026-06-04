@@ -74,13 +74,14 @@ class TodoInput extends HTMLElement {
     const isMobileSheet = window.matchMedia('(max-width: 480px)').matches;
 
     const reposition = () => {
-      // Keyboard height = gap between the bottom of the visual viewport and the window bottom
-      const keyboardHeight = window.innerHeight - (vv.offsetTop + vv.height);
+      // How much the keyboard has eaten from the bottom of the window
+      const keyboardHeight = window.innerHeight - vv.height;
       if (isMobileSheet) {
-        // Slide the bottom sheet up above the keyboard
-        dialog.style.bottom = `${Math.max(0, keyboardHeight)}px`;
+        // Translate the sheet up by the keyboard height — leaves bottom:0 layout
+        // untouched so max-height/overflow still work correctly
+        dialog.style.transform = `translateY(${-Math.max(0, keyboardHeight)}px)`;
       } else {
-        // Keep the centred modal in the middle of the visible area
+        // Keep centred modal in the middle of the visible area
         const top = Math.round(vv.offsetTop + vv.height / 2);
         dialog.style.top = `${top}px`;
         dialog.style.transform = 'translate(-50%, -50%) scale(1)';
@@ -93,9 +94,8 @@ class TodoInput extends HTMLElement {
     return () => {
       vv.removeEventListener('resize', reposition);
       vv.removeEventListener('scroll', reposition);
-      dialog.style.bottom = '';
-      dialog.style.top = '';
       dialog.style.transform = '';
+      dialog.style.top = '';
     };
   }
 }
