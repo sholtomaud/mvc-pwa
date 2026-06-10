@@ -37,3 +37,6 @@ cdk.out/
 Thumbs.db
 ehthumbs.db
 desktop.ini
+
+# All zip files
+*.zip

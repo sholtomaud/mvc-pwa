@@ -6,6 +6,12 @@ A state-of-the-art, premium Single Page Application (SPA) and Progressive Web Ap
 
 ## 🏗️ Architectural Foundations
 
+The app follows a genuine MVC split with zero framework code:
+
+* **Model** — `scripts/store/todo-store.ts`: a `TodoStore` class extending native `EventTarget` that owns the todo collection and persistence, emitting `change` events after every mutation. Persistence is isolated here, so the planned IndexedDB/HLC migration (see `TODO.md`) only touches this file.
+* **View** — the Web Components under `scripts/components/`: `todo-list` renders whatever collection it is given, reconciling the DOM keyed by todo id (in-place patches, never a full re-render).
+* **Controller** — `todo-app`: translates bubbling view events (`todo-add`, `todo-toggle`, …) into store mutations and pushes store state into the views on every `change`.
+
 We follow a strict **Triple-File Native Web Component** convention to preserve clean IDE parsing and complete style isolation. For every component `[component-name]`, we maintain:
 1. `[component-name].html` - Pure semantic HTML markup template.
 2. `[component-name].css` - Scoped Vanilla CSS styles.
@@ -17,10 +23,10 @@ We follow a strict **Triple-File Native Web Component** convention to preserve c
   import sheet from './todo-input.css' with { type: 'css' };
   this.shadow.adoptedStyleSheets = [sheet];
   ```
-* **Dynamic Resolvers (`import.meta.resolve`)**: Markup templates are resolved dynamically at runtime and injected into the Shadow DOM:
+* **Bundled HTML Templates (`?raw` imports)**: Markup templates are imported as raw strings at build time and stamped into the Shadow DOM — no runtime fetch, so component markup ships inside the precached JS bundle and works fully offline:
   ```typescript
-  const response = await fetch(import.meta.resolve('./todo-input.html'));
-  this.shadow.innerHTML = await response.text();
+  import htmlText from './todo-input.html?raw';
+  this.shadow.innerHTML = htmlText;
   ```
 * **Native View Transitions**: Step toggling and view switches leverage `document.startViewTransition` for fluid, hardware-accelerated animations.
 
@@ -30,11 +36,11 @@ We follow a strict **Triple-File Native Web Component** convention to preserve c
 
 ### 1. PWA & Offline Caching Integrity
 * **Offline-First Proxy**: A custom Service Worker (`public/sw.js`) intercepts assets.
-* **Cache Storage (Cache API)**: Pre-caches core bundles (`/index.html`, `/styles/main.css`, components, and icons) allowing the app to load instantly offline.
+* **Build-Time Precache Manifest**: A small Vite plugin (`sw-precache-manifest` in `vite.config.ts`) injects the complete list of emitted build files — including the hashed JS/CSS bundles — into `sw.js` at build time, plus a content-derived build id used as the cache name. The app is fully offline-capable after the first visit, and stale caches are dropped on every deploy.
 * **A2HS Metadata**: Includes a robust `manifest.json` configured for standalone immersive display and curated brand colors.
 
 ### 2. Multi-Step Onboarding Wizard
-* **Step 1: Account Setup**: Real-time username input with a `300ms` debounce timer that queries mock availability endpoints (`/api/check-username`) and displays color-coded feedback.
+* **Step 1: Account Setup**: Real-time username input with a `300ms` debounce timer that queries an availability endpoint (`/api/check-username` — mocked via `page.route` in the Playwright suite; in production the request fails over to the offline fallback path) and displays color-coded feedback.
 * **Step 2: Preferences**: Supports daily target limits and home address settings.
 * **State Preservation**: Input values remain perfectly preserved in the DOM when navigating backwards using the "Previous" button.
 * **Success Routing & Fallback**: Validates fields using standard HTML5 constraints, submits to `/api/save-profile`, and falls back to `localStorage` commits if offline, flashing status indications.

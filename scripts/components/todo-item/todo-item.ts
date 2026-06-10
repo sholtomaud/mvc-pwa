@@ -6,9 +6,13 @@ class TodoItem extends HTMLElement {
   private _id: number | null = null;
   private _text: string = '';
   private _complete: boolean = false;
+  private listenersAttached = false;
 
+  // `data-id` rather than `id`: the global HTML id attribute has document-wide
+  // semantics (fragment targets, label[for], CSS #selectors) and stamping todo
+  // ids like "1"/"2" onto it invites collisions.
   static get observedAttributes(): string[] {
-    return ['id', 'text', 'complete'];
+    return ['data-id', 'text', 'complete'];
   }
 
   constructor() {
@@ -24,9 +28,9 @@ class TodoItem extends HTMLElement {
   set todoId(val: number | null) {
     this._id = val;
     if (val !== null) {
-      this.setAttribute('id', val.toString());
+      this.setAttribute('data-id', val.toString());
     } else {
-      this.removeAttribute('id');
+      this.removeAttribute('data-id');
     }
   }
 
@@ -54,15 +58,15 @@ class TodoItem extends HTMLElement {
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
     if (oldValue === newValue) return;
-    
-    if (name === 'id') {
+
+    if (name === 'data-id') {
       this._id = newValue ? parseInt(newValue, 10) : null;
     } else if (name === 'text') {
       this._text = newValue || '';
     } else if (name === 'complete') {
       this._complete = newValue !== null;
     }
-    
+
     this.render();
   }
 
@@ -72,11 +76,16 @@ class TodoItem extends HTMLElement {
   }
 
   private setupListeners(): void {
+    // connectedCallback re-runs if the element is ever moved/re-appended;
+    // the shadow root persists, so guard against stacking duplicate listeners.
+    if (this.listenersAttached) return;
+    this.listenersAttached = true;
+
     this.shadow.addEventListener('click', (e: Event) => {
       const target = e.target as HTMLElement;
-      
+
       // Checkbox toggle
-      const checkbox = target.closest('.todo-checkbox') as HTMLButtonElement | null;
+      const checkbox = target.closest<HTMLButtonElement>('.todo-checkbox');
       if (checkbox) {
         this.dispatchEvent(new CustomEvent('todo-toggle', {
           bubbles: true,
@@ -86,7 +95,7 @@ class TodoItem extends HTMLElement {
       }
 
       // Delete button
-      const deleteBtn = target.closest('.delete-btn') as HTMLButtonElement | null;
+      const deleteBtn = target.closest<HTMLButtonElement>('.delete-btn');
       if (deleteBtn) {
         this.dispatchEvent(new CustomEvent('todo-delete', {
           bubbles: true,
@@ -99,9 +108,11 @@ class TodoItem extends HTMLElement {
     // Edit action on focusout
     this.shadow.addEventListener('focusout', (e: Event) => {
       const target = e.target as HTMLElement;
-      const textSpan = target.closest('.todo-text-span') as HTMLSpanElement | null;
+      const textSpan = target.closest<HTMLSpanElement>('.todo-text-span');
       if (textSpan) {
-        const updatedText = textSpan.innerText.trim();
+        // textContent rather than innerText: no forced layout, identical for
+        // a single-line span, and implemented in non-browser DOMs (jsdom).
+        const updatedText = (textSpan.textContent ?? '').trim();
         if (updatedText && updatedText !== this._text) {
           this.dispatchEvent(new CustomEvent('todo-edit', {
             bubbles: true,
@@ -110,7 +121,7 @@ class TodoItem extends HTMLElement {
           }));
         } else {
           // Reset text if left empty
-          textSpan.innerText = this._text;
+          textSpan.textContent = this._text;
         }
       }
     });
@@ -119,7 +130,7 @@ class TodoItem extends HTMLElement {
     this.shadow.addEventListener('keydown', (e: Event) => {
       const keyboardEvent = e as KeyboardEvent;
       const target = e.target as HTMLElement;
-      const textSpan = target.closest('.todo-text-span') as HTMLSpanElement | null;
+      const textSpan = target.closest<HTMLSpanElement>('.todo-text-span');
       if (textSpan && keyboardEvent.key === 'Enter') {
         e.preventDefault();
         textSpan.blur();
@@ -132,12 +143,16 @@ class TodoItem extends HTMLElement {
       this.style.setProperty('--item-transition-name', `todo-item-${this._id}`);
     }
 
-    this.shadow.innerHTML = htmlText;
+    // Stamp the template once; subsequent renders only patch values so an
+    // in-progress contenteditable edit in this item is never blown away.
+    if (!this.shadow.querySelector('.todo-item-card')) {
+      this.shadow.innerHTML = htmlText;
+    }
 
     // Apply values to HTML elements
-    const card = this.shadow.querySelector('.todo-item-card') as HTMLDivElement | null;
-    const checkbox = this.shadow.querySelector('.todo-checkbox') as HTMLButtonElement | null;
-    const textSpan = this.shadow.querySelector('.todo-text-span') as HTMLSpanElement | null;
+    const card = this.shadow.querySelector<HTMLDivElement>('.todo-item-card');
+    const checkbox = this.shadow.querySelector<HTMLButtonElement>('.todo-checkbox');
+    const textSpan = this.shadow.querySelector<HTMLSpanElement>('.todo-text-span');
 
     if (card) {
       card.classList.toggle('completed', this._complete);
@@ -146,8 +161,8 @@ class TodoItem extends HTMLElement {
       checkbox.classList.toggle('checked', this._complete);
       checkbox.setAttribute('aria-checked', this._complete ? 'true' : 'false');
     }
-    if (textSpan) {
-      textSpan.innerText = this._text;
+    if (textSpan && textSpan.textContent !== this._text) {
+      textSpan.textContent = this._text;
     }
   }
 }

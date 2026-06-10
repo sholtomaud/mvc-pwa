@@ -1,6 +1,9 @@
 import sheet from './user-profile.css' with { type: 'css' };
 import htmlText from './user-profile.html?raw';
 
+import { loadJSON, saveJSON } from '../../store/storage';
+import { withViewTransition } from '../../utils/view-transition';
+
 interface Profile {
   username: string;
   email: string;
@@ -26,8 +29,9 @@ class UserProfile extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' });
     this.shadow.adoptedStyleSheets = [sheet];
     
-    const stored = localStorage.getItem('user-profile');
-    this.profile = stored ? JSON.parse(stored) : { ...DEFAULT_PROFILE };
+    // Merge over defaults so a partially-corrupted or older stored shape
+    // still yields a complete, valid Profile.
+    this.profile = { ...DEFAULT_PROFILE, ...loadJSON<Partial<Profile>>('user-profile', {}) };
   }
 
   connectedCallback(): void {
@@ -63,14 +67,8 @@ class UserProfile extends HTMLElement {
       });
     };
 
-    // Use native View Transitions API for slide-like animations
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const docAny = document as any;
-    if (docAny.startViewTransition) {
-      docAny.startViewTransition(updateDOM);
-    } else {
-      updateDOM();
-    }
+    // Native View Transitions for slide-like animations (typed helper)
+    withViewTransition(updateDOM);
   }
 
   private setupForm(): void {
@@ -204,7 +202,7 @@ class UserProfile extends HTMLElement {
           this.profile = payload;
 
           // Save to localStorage
-          localStorage.setItem('user-profile', JSON.stringify(this.profile));
+          saveJSON('user-profile', this.profile);
 
           // Dispatch profile update CustomEvent
           this.dispatchEvent(new CustomEvent('profile-update', {
@@ -231,7 +229,7 @@ class UserProfile extends HTMLElement {
           address: addrInput.value.trim(),
           target: parseInt(targetInput.value, 10) || 5
         };
-        localStorage.setItem('user-profile', JSON.stringify(this.profile));
+        saveJSON('user-profile', this.profile);
         this.dispatchEvent(new CustomEvent('profile-update', {
           bubbles: true,
           composed: true,

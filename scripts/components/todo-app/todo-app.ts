@@ -1,147 +1,132 @@
 import sheet from './todo-app.css' with { type: 'css' };
 import htmlText from './todo-app.html?raw';
 
-// Register child components by importing them
+import { TodoStore } from '../../store/todo-store';
+import { withViewTransition } from '../../utils/view-transition';
+
+// Importing child components for their side effect (customElements.define).
+// NOTE: these bare imports are load-bearing — an import binding used only in
+// type positions (like TodoList below) is elided by the TS transform, which
+// would silently drop the component registration.
+import '../todo-list/todo-list';
 import '../todo-item/todo-item';
 import '../todo-input/todo-input';
-import '../todo-list/todo-list';
 import '../app-navigation/app-navigation';
 import '../user-profile/user-profile';
 
-interface Todo {
-  id: number;
-  text: string;
-  complete: boolean;
-}
+// Type-only import so the cross-component `update()` call is type-checked.
+import type TodoList from '../todo-list/todo-list';
 
-
-
+/**
+ * The Controller: translates view events (todo-add, todo-toggle, ...) into
+ * store mutations, and pushes store state into the TodoList view whenever
+ * the model emits `change`. It holds no todo state of its own.
+ */
 class TodoApp extends HTMLElement {
   private shadow: ShadowRoot;
-  private todos: Todo[];
+  private store: TodoStore;
+  private abort: AbortController | null = null;
 
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.shadow.adoptedStyleSheets = [sheet];
-    this.todos = JSON.parse(localStorage.getItem('todos') || '[]');
+    this.store = new TodoStore();
   }
 
   connectedCallback(): void {
+    this.abort = new AbortController();
     this.render();
     this.setupListeners();
+    // Child custom elements are already defined (imported above), so they
+    // upgrade synchronously while the shadow HTML parses — the list is ready
+    // to receive data immediately. No handshake event required.
     this.updateList();
+  }
+
+  disconnectedCallback(): void {
+    this.abort?.abort();
+    this.abort = null;
   }
 
   private render(): void {
     this.shadow.innerHTML = htmlText;
+    // Parser-created custom elements inside innerHTML are upgraded via the
+    // backup element queue (a microtask), NOT synchronously — even when
+    // already defined. Force the upgrade now so children expose their class
+    // API (e.g. TodoList.update) immediately.
+    customElements.upgrade(this.shadow);
   }
 
   private setupListeners(): void {
-    // Listen for custom events bubbling from Shadow DOM child components
-    this.addEventListener('todo-add', (e: Event) => {
-      const customEvent = e as CustomEvent<{ text: string }>;
-      this.addTodo(customEvent.detail.text);
-    });
+    const signal = this.abort?.signal;
 
-    this.addEventListener('todo-toggle', (e: Event) => {
-      const customEvent = e as CustomEvent<{ id: number }>;
-      this.toggleTodo(customEvent.detail.id);
-    });
+    // Model -> View: re-render the list on every store change.
+    this.store.addEventListener('change', () => this.updateList(), { signal });
 
-    this.addEventListener('todo-delete', (e: Event) => {
-      const customEvent = e as CustomEvent<{ id: number }>;
-      this.deleteTodo(customEvent.detail.id);
-    });
-
-    this.addEventListener('todo-edit', (e: Event) => {
-      const customEvent = e as CustomEvent<{ id: number; text: string }>;
-      this.editTodo(customEvent.detail.id, customEvent.detail.text);
-    });
-
-    this.addEventListener('view-change', (e: Event) => {
-      const customEvent = e as CustomEvent<{ route: string }>;
-      this.switchView(customEvent.detail.route);
-    });
-
-    this.addEventListener('list-ready', () => {
-      this.updateList();
-    });
-  }
-
-  private _commit(todos: Todo[]): void {
-    this.todos = todos;
-    localStorage.setItem('todos', JSON.stringify(todos));
-    this.updateList();
-  }
-
-  private addTodo(text: string): void {
-    const newTodo: Todo = {
-      id: this.todos.length > 0 ? this.todos[this.todos.length - 1].id + 1 : 1,
-      text,
-      complete: false
-    };
-    this._commit([...this.todos, newTodo]);
-  }
-
-  private toggleTodo(id: number): void {
-    const updated = this.todos.map(todo =>
-      todo.id === id ? { ...todo, complete: !todo.complete } : todo
+    // View -> Model: custom events bubbling up from Shadow DOM children.
+    this.addEventListener(
+      'todo-add',
+      (e: Event) => {
+        const { text } = (e as CustomEvent<{ text: string }>).detail;
+        this.store.add(text);
+      },
+      { signal }
     );
-    this._commit(updated);
-  }
 
-  private deleteTodo(id: number): void {
-    const updated = this.todos.filter(todo => todo.id !== id);
-    this._commit(updated);
-  }
-
-  private editTodo(id: number, text: string): void {
-    const updated = this.todos.map(todo =>
-      todo.id === id ? { ...todo, text } : todo
+    this.addEventListener(
+      'todo-toggle',
+      (e: Event) => {
+        const { id } = (e as CustomEvent<{ id: number }>).detail;
+        this.store.toggle(id);
+      },
+      { signal }
     );
-    this._commit(updated);
+
+    this.addEventListener(
+      'todo-delete',
+      (e: Event) => {
+        const { id } = (e as CustomEvent<{ id: number }>).detail;
+        this.store.remove(id);
+      },
+      { signal }
+    );
+
+    this.addEventListener(
+      'todo-edit',
+      (e: Event) => {
+        const { id, text } = (e as CustomEvent<{ id: number; text: string }>).detail;
+        this.store.edit(id, text);
+      },
+      { signal }
+    );
+
+    this.addEventListener(
+      'view-change',
+      (e: Event) => {
+        const { route } = (e as CustomEvent<{ route: string }>).detail;
+        this.switchView(route);
+      },
+      { signal }
+    );
   }
 
   private switchView(route: string): void {
-    const render = () => {
-      const tasksView = this.shadow.querySelector('#view-tasks') as HTMLElement | null;
-      const profileView = this.shadow.querySelector('#view-profile') as HTMLElement | null;
+    if (route !== 'tasks' && route !== 'profile') return;
+
+    withViewTransition(() => {
+      const tasksView = this.shadow.querySelector<HTMLElement>('#view-tasks');
+      const profileView = this.shadow.querySelector<HTMLElement>('#view-profile');
       if (!tasksView || !profileView) return;
 
-      if (route === 'tasks') {
-        tasksView.classList.add('active');
-        profileView.classList.remove('active');
-      } else if (route === 'profile') {
-        profileView.classList.add('active');
-        tasksView.classList.remove('active');
-      }
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const docAny = document as any;
-    if (docAny.startViewTransition) {
-      try {
-        const transition: ViewTransition = docAny.startViewTransition(render);
-        // Chain .catch() inline — must happen synchronously before any microtask can
-        // process the promise rejection, otherwise the AbortError becomes unhandled.
-        transition.updateCallbackDone.catch(() => {});
-        transition.ready.catch(() => {});
-        transition.finished.catch(() => {});
-      } catch {
-        // startViewTransition can throw synchronously in edge cases
-        render();
-      }
-    } else {
-      render();
-    }
+      tasksView.classList.toggle('active', route === 'tasks');
+      profileView.classList.toggle('active', route === 'profile');
+    });
   }
 
   private updateList(): void {
-    const todoListElement = this.shadow.querySelector('todo-list') as any;
-    if (todoListElement && typeof todoListElement.update === 'function') {
-      todoListElement.update(this.todos);
-    }
+    const todoList = this.shadow.querySelector<TodoList>('todo-list');
+    todoList?.update(this.store.getAll());
   }
 }
 
