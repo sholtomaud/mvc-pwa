@@ -38,5 +38,5 @@ Thumbs.db
 ehthumbs.db
 desktop.ini
 
-# All zip files
+# ignore zip files
 *.zip

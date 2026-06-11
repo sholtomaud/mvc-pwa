@@ -65,7 +65,7 @@ test.describe('PWA & Mobile-First Capabilities', () => {
     expect(cachedUrls).toContain('/styles/main.css');
   });
 
-  test('1.3. Offline Functionality & Local Storage Persistence', async ({ page, context }) => {
+  test('1.3. Offline Functionality & Local Database Persistence', async ({ page, context }) => {
     // 1. Create a task while online
     const fabBtn = page.locator('todo-app >> todo-input >> .fab-btn');
     const dialog = page.locator('todo-app >> todo-input >> #todo-dialog');
@@ -89,9 +89,32 @@ test.describe('PWA & Mobile-First Capabilities', () => {
     // 3. Interact with the task while offline (Toggle completeness)
     await checkbox.click();
 
-    // 4. Verify that local database/localStorage remains fully functional and updates offline
-    const localStorageData = await page.evaluate(() => localStorage.getItem('todos'));
-    expect(localStorageData).toContain('"complete":true');
+    // 4. Verify the local database (IndexedDB) remains fully functional and
+    // records the offline mutation. Persistence is write-behind, so poll.
+    await expect
+      .poll(async () =>
+        page.evaluate(async () => {
+          const db = await new Promise<IDBDatabase>((resolve, reject) => {
+            const req = indexedDB.open('mvc-pwa-todos');
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+          });
+          try {
+            if (!db.objectStoreNames.contains('todos')) return false;
+            const records = await new Promise<Array<{ complete?: { value?: boolean } }>>(
+              (resolve, reject) => {
+                const r = db.transaction('todos', 'readonly').objectStore('todos').getAll();
+                r.onsuccess = () => resolve(r.result);
+                r.onerror = () => reject(r.error);
+              }
+            );
+            return records.some((rec) => rec?.complete?.value === true);
+          } finally {
+            db.close();
+          }
+        })
+      )
+      .toBe(true);
 
     // Restore network
     await context.setOffline(false);

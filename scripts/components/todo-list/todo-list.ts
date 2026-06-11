@@ -21,7 +21,7 @@ import type TodoItem from '../todo-item/todo-item';
  */
 class TodoList extends HTMLElement {
   private shadow: ShadowRoot;
-  private items = new Map<number, TodoItem>();
+  private items = new Map<string, TodoItem>();
 
   constructor() {
     super();

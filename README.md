@@ -1,6 +1,6 @@
-# 🔱 Premium MVC-PWA & Native Web Component Onboarding Wizard
+# 🔱 mvc-pwa — Native Web Component Todo App
 
-A state-of-the-art, premium Single Page Application (SPA) and Progressive Web App (PWA) built using **pure native browser APIs** and **modular Web Components** (zero heavy external frameworks). It features custom gesture overlays, a fluid multi-step **Setup Wizard**, robust offline caching, and a containerized test harness.
+A Todo App built as a Single Page Application (SPA) and Progressive Web App (PWA) using **pure native browser APIs** and **modular Web Components** (zero heavy external frameworks). It features a genuine MVC architecture, a multi-step profile **Setup Wizard**, offline-first caching with a build-time precache manifest, and a containerized test harness.
 
 ---
 
@@ -8,7 +8,7 @@ A state-of-the-art, premium Single Page Application (SPA) and Progressive Web Ap
 
 The app follows a genuine MVC split with zero framework code:
 
-* **Model** — `scripts/store/todo-store.ts`: a `TodoStore` class extending native `EventTarget` that owns the todo collection and persistence, emitting `change` events after every mutation. Persistence is isolated here, so the planned IndexedDB/HLC migration (see `TODO.md`) only touches this file.
+* **Model** — `scripts/store/`: a `TodoStore` (native `EventTarget`) that owns the todo collection as **local-first, sync-ready CRDT records**: per-field last-writer-wins registers stamped by a Hybrid Logical Clock (`hlc.ts`), tombstone deletes, and a tested deterministic merge (`todo-record.ts`). Persistence is IndexedDB with a localStorage fallback (`persistence.ts`), write-behind so the UI never blocks, with one-time migration of pre-existing localStorage data. `TodoStore.applyRemote()` is the future sync entry point — adding multi-device sync is now a transport problem, not a data-model rewrite (see `TODO.md`).
 * **View** — the Web Components under `scripts/components/`: `todo-list` renders whatever collection it is given, reconciling the DOM keyed by todo id (in-place patches, never a full re-render).
 * **Controller** — `todo-app`: translates bubbling view events (`todo-add`, `todo-toggle`, …) into store mutations and pushes store state into the views on every `change`.
 

@@ -77,7 +77,7 @@ class TodoApp extends HTMLElement {
     this.addEventListener(
       'todo-toggle',
       (e: Event) => {
-        const { id } = (e as CustomEvent<{ id: number }>).detail;
+        const { id } = (e as CustomEvent<{ id: string }>).detail;
         this.store.toggle(id);
       },
       { signal }
@@ -86,7 +86,7 @@ class TodoApp extends HTMLElement {
     this.addEventListener(
       'todo-delete',
       (e: Event) => {
-        const { id } = (e as CustomEvent<{ id: number }>).detail;
+        const { id } = (e as CustomEvent<{ id: string }>).detail;
         this.store.remove(id);
       },
       { signal }
@@ -95,7 +95,7 @@ class TodoApp extends HTMLElement {
     this.addEventListener(
       'todo-edit',
       (e: Event) => {
-        const { id, text } = (e as CustomEvent<{ id: number; text: string }>).detail;
+        const { id, text } = (e as CustomEvent<{ id: string; text: string }>).detail;
         this.store.edit(id, text);
       },
       { signal }

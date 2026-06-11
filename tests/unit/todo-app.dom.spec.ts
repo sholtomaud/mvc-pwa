@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { installLocalStorage } from './helpers/local-storage-mock';
 
 /**
@@ -89,7 +89,8 @@ describe('todo-app DOM integration', () => {
     expect(item, 'todo-item should exist').toBeTruthy();
     expect(item!.shadowRoot!.querySelector('.todo-checkbox')).toBeTruthy();
     expect(item!.shadowRoot!.querySelector('.todo-text-span')!.textContent).toBe('hello');
-    expect(item!.getAttribute('data-id')).toBe('1');
+    // Ids are now globally-unique strings (sync-safe), not sequence numbers.
+    expect(item!.getAttribute('data-id')).toBeTruthy();
   });
 
   it('toggles completion through a checkbox click and persists it', async () => {
@@ -103,7 +104,12 @@ describe('todo-app DOM integration', () => {
 
     const checkbox = item.shadowRoot!.querySelector('.todo-checkbox')!;
     expect(checkbox.getAttribute('aria-checked')).toBe('true');
-    expect(localStorage.getItem('todos')).toContain('"complete":true');
+    // jsdom has no IndexedDB, so the store's localStorage fallback adapter
+    // persists CRDT records under 'todo-records' (write-behind, hence poll).
+    await vi.waitFor(() => {
+      const raw = localStorage.getItem('todo-records') ?? '';
+      expect(raw).toContain('"complete":{"value":true');
+    });
   });
 
   it('removes the item from the DOM on delete', async () => {
@@ -134,7 +140,7 @@ describe('todo-app DOM integration', () => {
     expect(queryItem(app, 0)).toBe(stableNode);
   });
 
-  it('hydrates persisted todos on a fresh mount', async () => {
+  it('hydrates and migrates legacy persisted todos on a fresh mount', async () => {
     localStorage.setItem('todos', JSON.stringify([{ id: 7, text: 'restored', complete: true }]));
     const app = await mountApp();
     await tick();

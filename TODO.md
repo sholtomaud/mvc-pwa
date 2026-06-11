@@ -29,32 +29,42 @@ The manifest splash screen on Android/Chrome is auto-generated from `name`, `bac
 
 Replace `localStorage` with IndexedDB, add HLC timestamps and tombstone soft-deletes.
 
-- [ ] Create `scripts/db/types.ts`
-  - `TodoRecord` — stable UUID `id`, `text`, `complete`, `is_deleted` (tombstone), `hlc`
-  - `MutationLog` — outbox entry: `id`, `table`, `recordId`, `action`, `payload`, `hlc`, `synced`
+**Status: DONE**, with one deliberate architectural deviation from the blueprint below:
+the implemented model is **state-based** (per-FIELD LWW registers on each record, merged
+via `TodoStore.applyRemote()`) rather than op-based (per-record `hlc` + mutation outbox).
+Per-field registers are strictly better for merging — concurrent edits to different
+fields of the same todo both survive, instead of whole-record last-writer-wins clobbering.
+The outbox/mutation-log remains open (moved to Phase 2/3) since it only matters once a
+sync transport exists; the state-merge entry point is already implemented and tested.
 
-- [ ] Create `scripts/db/hlc.ts`
-  - Port the `HLC` class from `docs/local_first_vanilla_sync_blueprint.md`
-  - `increment()` — generates `${ts}-${count}-${nodeId}` on every write
-  - `receive(incoming)` — advances clock on sync
-  - `HLC.compare(a, b)` — used for LWW conflict resolution
+- [x] Record types — `scripts/store/todo-record.ts` (instead of `scripts/db/types.ts`)
+  - `TodoRecord` — stable UUID `id`, `created` HLC, and per-field LWW registers
+    (`text`, `complete`, `deleted` tombstone), each carrying its own HLC timestamp
+  - `mergeRecord()` — deterministic, commutative, idempotent merge (unit-tested)
+  - `MutationLog`/outbox — NOT implemented yet (see Phase 2/3)
 
-- [ ] Create `scripts/db/store.ts`
-  - `LocalStore` class wrapping native IndexedDB
-  - Object stores: `todos` (keyPath: `id`, index on `hlc`), `outbox` (keyPath: `id`, index on `synced`)
-  - Methods: `putTodo`, `getTodo`, `getAllTodos`, `addToOutbox`, `getPendingMutations`, `markSynced`
-  - Call `navigator.storage.persist()` on init to prevent browser eviction
+- [x] HLC — `scripts/store/hlc.ts` (instead of `scripts/db/hlc.ts`)
+  - `HLC.now()` — fixed-width sortable `"<millis>:<counter>:<nodeId>"`, strictly
+    monotonic per node even under wall-clock skew/jumps
+  - `HLC.receive(incoming)` — advances clock past observed remote timestamps
+  - `compareTimestamps(a, b)` — plain lexicographic compare IS causal compare
+  - Stable per-install node id, persisted on first use
 
-- [ ] Migrate `scripts/components/todo-app/todo-app.ts`
-  - Replace `localStorage` reads/writes with `LocalStore` calls (async)
-  - Change todo `id` from `number` (auto-increment) to `crypto.randomUUID()` string
-  - Replace hard deletes with tombstone writes (`is_deleted: true`, new HLC)
-  - Stamp every `_commit` with `hlc.increment()`
-  - Write each mutation to the outbox (`synced: 0`) alongside the main store write
-  - Filter out `is_deleted` records when rendering the list
+- [x] Persistence — `scripts/store/persistence.ts` + `scripts/store/todo-store.ts`
+  - `IndexedDBPersistence` — db `mvc-pwa-todos`, object store `todos` (keyPath `id`)
+  - `LocalStoragePersistence` fallback (non-IDB environments) and `MemoryPersistence` (tests)
+  - `navigator.storage.persist()` requested on store init
+  - One-time migration lifts the legacy localStorage `todos` blob into stamped records
+  - `outbox` object store — NOT implemented yet (see Phase 2/3)
 
-- [ ] Update `scripts/components/todo-list/todo-list.ts` and `todo-item/todo-item.ts`
-  - Accept `string` IDs instead of `number`
+- [x] Components migrated
+  - `TodoStore` owns all persistence (components never touch storage); mutations are
+    synchronous against an in-memory cache with write-behind persistence
+  - Todo ids are `crypto.randomUUID()` strings end-to-end
+  - Deletes are tombstone writes; `getAll()` filters tombstones for rendering
+  - Every mutation is stamped via `hlc.now()`
+
+- [x] `todo-list` / `todo-item` accept `string` IDs
 
 ---
 
@@ -97,11 +107,11 @@ Pull remote mutations down and push the local outbox up on reconnect.
 
 The service worker already caches assets correctly. These invariants must stay true after every phase above:
 
-- [ ] IndexedDB works fully offline — reads/writes must never block on network. All `LocalStore` operations are purely local; sync is always fire-and-forget from the app's perspective.
+- [x] IndexedDB works fully offline — reads/writes never block on network; all store operations are purely local and write-behind.
 - [ ] The outbox drains only when online. Background Sync fires when connectivity returns — the app must never show an error or spinner waiting for sync. Fail silently, retry automatically.
 - [ ] `navigator.onLine` check before any `sync()` call — skip push/pull entirely when offline, don't surface a network error to the user.
 - [ ] Bump the service worker cache version (`CACHE_NAME`) after any change to `sw.js` so old clients don't get stuck with a stale worker.
-- [ ] Playwright offline test: use `context.setOffline(true)`, create todos, set online, assert todos persisted in IndexedDB and outbox has pending entries.
+- [x] Playwright offline test (partial): test 1.3 creates a todo, goes offline, mutates it, and asserts the record persisted to IndexedDB. Outbox assertion pending until the outbox exists (Phase 2/3).
 
 ---
 

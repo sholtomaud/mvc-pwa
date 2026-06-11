@@ -1,5 +1,3 @@
-/* eslint-env serviceworker */
-
 // Injected at build time by the `sw-precache-manifest` plugin in
 // vite.config.ts: the complete list of files emitted to dist/ (hashed JS/CSS
 // bundles, index.html, manifest, icons) plus a content-derived build id.

@@ -3,7 +3,7 @@ import htmlText from './todo-item.html?raw';
 
 class TodoItem extends HTMLElement {
   private shadow: ShadowRoot;
-  private _id: number | null = null;
+  private _id: string | null = null;
   private _text: string = '';
   private _complete: boolean = false;
   private listenersAttached = false;
@@ -21,14 +21,14 @@ class TodoItem extends HTMLElement {
     this.shadow.adoptedStyleSheets = [sheet];
   }
 
-  get todoId(): number | null {
+  get todoId(): string | null {
     return this._id;
   }
 
-  set todoId(val: number | null) {
+  set todoId(val: string | null) {
     this._id = val;
     if (val !== null) {
-      this.setAttribute('data-id', val.toString());
+      this.setAttribute('data-id', val);
     } else {
       this.removeAttribute('data-id');
     }
@@ -60,7 +60,7 @@ class TodoItem extends HTMLElement {
     if (oldValue === newValue) return;
 
     if (name === 'data-id') {
-      this._id = newValue ? parseInt(newValue, 10) : null;
+      this._id = newValue || null;
     } else if (name === 'text') {
       this._text = newValue || '';
     } else if (name === 'complete') {
