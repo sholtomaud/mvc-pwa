@@ -40,3 +40,14 @@ desktop.ini
 
 # ignore zip files
 *.zip
+
+
+# Ignore log files
+*.log
+
+# Ignore environment variable files
+.env
+.env.*.local
+
+# Ignofre .patch files
+*.patch
